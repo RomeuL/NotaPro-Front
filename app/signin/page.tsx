@@ -9,36 +9,40 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "@/components/ui/form"
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
 
 const signInSchema = z.object({
   email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  senha: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 })
 
 type SignInFormValues = z.infer<typeof signInSchema>
 
 export default function SignInForm() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null);
+  const { login, isLoading } = useAuth();
+  const router = useRouter();
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
       email: "",
-      password: "",
+      senha: "",
     },
   })
 
   async function onSubmit(data: SignInFormValues) {
-    setIsLoading(true)
+    setError(null);
+    
     try {
-      // Aqui você implementaria a lógica de autenticação
-      console.log("Login data:", data)
-      // Simular um delay para demonstração
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-    } catch (error) {
-      console.error("Erro ao fazer login:", error)
-    } finally {
-      setIsLoading(false)
+      await login(data.email, data.senha);
+    } catch (error: any) {
+      console.error("Erro ao fazer login:", error);
+      setError(
+        error.response?.data?.message || 
+        'Falha na autenticação. Verifique suas credenciais.'
+      );
     }
   }
 
@@ -67,14 +71,14 @@ export default function SignInForm() {
             />
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="senha">Senha</Label>
                 <Button variant="link" className="p-0 h-auto text-xs">
                   Esqueceu a senha?
                 </Button>
               </div>
               <FormField
                 control={form.control}
-                name="password"
+                name="senha"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
@@ -85,6 +89,11 @@ export default function SignInForm() {
                 )}
               />
             </div>
+            {error && (
+              <div className="p-3 text-sm text-white bg-destructive rounded-md">
+                {error}
+              </div>
+            )}
           </CardContent>
           <CardFooter>
             <Button className="w-full" type="submit" disabled={isLoading}>
