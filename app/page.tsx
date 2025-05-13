@@ -1,16 +1,35 @@
+"use client"
+
 import Link from "next/link"
-import { Building2, FileText } from "lucide-react"
+import { Building2, FileText, LogOut } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function Home() {
+  const { logout, user } = useAuth();
+  
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4">
+      <div className="w-full max-w-4xl flex justify-between items-center mb-8 p-2">
+        <div className="font-medium">
+          Bem-vindo, <span className="font-bold">{user?.nome || 'Usuário'}</span>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={logout}
+          className="flex items-center gap-1"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </Button>
+      </div>
+
       <div className="max-w-4xl w-full">
         <h1 className="text-3xl font-bold text-center mb-8">Selecione uma opção</h1>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Card 1: Gerenciamento de Empresas */}
           <Link href="/empresas" className="block transition-transform hover:scale-105">
             <Card className="hover:border-black h-full flex flex-col">
               <CardHeader className="text-center">
@@ -30,8 +49,6 @@ export default function Home() {
               </CardFooter>
             </Card>
           </Link>
-
-          {/* Card 2: Gerenciamento de Notas Fiscais */}
           <Link href="/notas-fiscais" className="block transition-transform hover:scale-105">
             <Card className="hover:border-black h-full flex flex-col">
               <CardHeader className="text-center">
