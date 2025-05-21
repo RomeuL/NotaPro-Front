@@ -1,5 +1,4 @@
-"use client"
-
+"use client";
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,7 +16,7 @@ const signInSchema = z.object({
   senha: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 })
 
-type SignInFormValues = z.infer<typeof signInSchema>
+type SignInFormValues = z.infer<typeof signInSchema>;
 
 export default function SignInForm() {
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +29,7 @@ export default function SignInForm() {
       email: "",
       senha: "",
     },
-  })
+  });
 
   async function onSubmit(data: SignInFormValues) {
     setError(null);
@@ -81,8 +80,9 @@ export default function SignInForm() {
                 name="senha"
                 render={({ field }) => (
                   <FormItem>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <Input placeholder="seu@email.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -103,5 +103,4 @@ export default function SignInForm() {
         </form>
       </Form>
     </Card></div>
-  )
 }
