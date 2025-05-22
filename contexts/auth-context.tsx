@@ -36,13 +36,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userData = localStorage.getItem('user');
           if (userData) {
             setUser(JSON.parse(userData));
+            Cookies.set('user', userData, { expires: 2 });
           } else {
             Cookies.remove('auth-token');
+            Cookies.remove('user');
             localStorage.removeItem('token');
           }
         } catch (error) {
           console.error('Erro ao verificar autenticação:', error);
           Cookies.remove('auth-token');
+          Cookies.remove('user');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
         }
@@ -72,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         
         localStorage.setItem('user', JSON.stringify(userData));
+        Cookies.set('user', JSON.stringify(userData), { expires: 2 });
         
         setUser(userData);
         
@@ -87,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     Cookies.remove('auth-token');
+    Cookies.remove('user');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);

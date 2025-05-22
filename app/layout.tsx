@@ -1,12 +1,12 @@
-
 import type React from "react";
 import "@/app/globals.css";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from '@/contexts/auth-context';
+import { Providers } from './providers';
+import { Navbar } from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,18 +18,20 @@ export const metadata = {
 export default function RootLayout({
   children,
 }: {
-
   children: React.ReactNode;
 }) {
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light">
-          {children}
+          <Providers>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </Providers>
         </ThemeProvider>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
       </body>
     </html>
   );

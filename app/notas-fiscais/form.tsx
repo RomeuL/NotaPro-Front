@@ -1,6 +1,5 @@
 "use client";
 
-import type React from "react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,162 +22,126 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import api from "@/lib/api";
 
-interface NotaFiscalItem {
-  description: string;
-  quantity: string;
-  unitPrice: string;
-}
-
-interface NotaFiscal {
+interface Invoice {
   id?: number;
-  number: string;
-  company: string;
-  date: string;
-  value: string;
-  status: string;
-  items: NotaFiscalItem[];
+  descricao: string;
+  empresaId: number;
+  dataEmissao: string;
+  dataVencimento: string;
+  valor: number;
+  tipoPagamento: "BOLETO" | "PIX" | "CARTAO_CREDITO" | "TRANSFERENCIA_BANCARIA" | "DINHEIRO";
+  numeroBoleto: string | null;
+  status: "PENDENTE" | "PAGO";
 }
 
-interface FormData {
-  number: string;
-  company: string;
-  date: string;
-  value: string;
-  status: string;
-  items: NotaFiscalItem[];
+interface Company {
+  id: number;
+  nome: string;
+  cnpj: string;
 }
 
 interface FormErrors {
-  number?: string;
-  company?: string;
-  date?: string;
-  value?: string;
-  status?: string;
-  items?: Array<{
-    description?: string;
-    quantity?: string;
-    unitPrice?: string;
-  }>;
+  descricao?: string;
+  empresaId?: string;
+  dataEmissao?: string;
+  dataVencimento?: string;
+  valor?: string;
+  tipoPagamento?: string;
+  numeroBoleto?: string;
   general?: string;
 }
 
-// Mock companies for select
-const companies = [
-  { id: 1, name: "Empresa ABC Ltda" },
-  { id: 2, name: "Comércio XYZ S.A." },
-  { id: 3, name: "Indústria 123 Ltda" },
-  { id: 4, name: "Serviços Tech Ltda" },
-];
-
 interface FormNotaFiscalProps {
-  notaFiscal?: NotaFiscal;
+  notaFiscal?: Invoice;
 }
 
-export default function FormNotaFiscalPage({
-  notaFiscal,
-}: FormNotaFiscalProps) {
+export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) {
   const router = useRouter();
-  const [formData, setFormData] = useState<FormData>({
-    number: "",
-    company: "",
-    date: new Date().toISOString().split("T")[0],
-    value: "",
-    status: "Pendente",
-    items: [{ description: "", quantity: "", unitPrice: "" }],
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [formData, setFormData] = useState<Invoice>({
+    descricao: "",
+    empresaId: 0,
+    dataEmissao: new Date().toISOString().split("T")[0],
+    dataVencimento: new Date().toISOString().split("T")[0],
+    valor: 0,
+    tipoPagamento: "BOLETO",
+    numeroBoleto: null,
+    status: "PENDENTE",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize form with nota fiscal data if provided
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await api.get("/empresas");
+        setCompanies(response.data);
+      } catch (err) {
+        console.error("Error fetching companies:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCompanies();
+  }, []);
+
   useEffect(() => {
     if (notaFiscal) {
-      // Format the value to remove "R$ " prefix if present
-      let formattedValue = notaFiscal.value;
-      if (formattedValue.startsWith("R$ ")) {
-        formattedValue = formattedValue
-          .substring(3)
-          .replace(".", "")
-          .replace(",", ",");
-      }
-
-      setFormData({
-        number: notaFiscal.number,
-        company: notaFiscal.company,
-        date: notaFiscal.date.split("/").reverse().join("-"), // Convert DD/MM/YYYY to YYYY-MM-DD
-        value: formattedValue,
-        status: notaFiscal.status,
-        items:
-          notaFiscal.items.length > 0
-            ? notaFiscal.items
-            : [{ description: "", quantity: "", unitPrice: "" }],
-      });
+      setFormData(notaFiscal);
     }
   }, [notaFiscal]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
+    
+    if (id === 'valor') {
+      const numbersOnly = value.replace(/[^\d,\.]/g, '');
+      
+      const normalizedValue = numbersOnly.replace(',', '.');
+      
+      const numericValue = parseFloat(normalizedValue) || 0;
+      
+      setFormData((prev) => ({ 
+        ...prev, 
+        [id]: numericValue
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [id]: value }));
+    }
 
-    // Clear error when field is edited
     if (errors[id as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [id]: undefined }));
     }
   };
 
-  const handleSelectChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleCurrencyInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cursorPosition = e.target.selectionStart;
+    
+    const unformattedValue = e.target.value.replace(/[^\d]/g, '');
+    
+    const cents = unformattedValue === '' ? 0 : parseInt(unformattedValue);
+    
+    const valueAsFloat = cents / 100;
+    
+    setFormData((prev) => ({ 
+      ...prev, 
+      valor: valueAsFloat
+    }));
+    
+    if (errors.valor) {
+      setErrors((prev) => ({ ...prev, valor: undefined }));
+    }
+  };
 
-    // Clear error when field is edited
+  const handleSelectChange = (field: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
-  const handleItemChange = (index: number, field: string, value: string) => {
-    const newItems = [...formData.items];
-    newItems[index] = { ...newItems[index], [field]: value };
-
-    setFormData((prev) => ({ ...prev, items: newItems }));
-
-    // Clear error when field is edited
-    if (
-      errors.items &&
-      errors.items[index] &&
-      errors.items[index][field as keyof (typeof errors.items)[index]]
-    ) {
-      const newErrors = { ...errors };
-      if (newErrors.items && newErrors.items[index]) {
-        newErrors.items[index] = {
-          ...newErrors.items[index],
-          [field]: undefined,
-        };
-      }
-      setErrors(newErrors);
-    }
-  };
-
-  const addItem = () => {
-    setFormData((prev) => ({
-      ...prev,
-      items: [...prev.items, { description: "", quantity: "", unitPrice: "" }],
-    }));
-  };
-
-  const removeItem = (index: number) => {
-    if (formData.items.length > 1) {
-      const newItems = [...formData.items];
-      newItems.splice(index, 1);
-      setFormData((prev) => ({ ...prev, items: newItems }));
-
-      // Remove errors for this item
-      if (errors.items) {
-        const newErrors = { ...errors };
-        if (newErrors.items) {
-          newErrors.items.splice(index, 1);
-          setErrors(newErrors);
-        }
-      }
     }
   };
 
@@ -186,75 +149,38 @@ export default function FormNotaFiscalPage({
     const newErrors: FormErrors = {};
     let isValid = true;
 
-    // Validate invoice number
-    if (!formData.number.trim()) {
-      newErrors.number = "Número da nota fiscal é obrigatório";
+    if (!formData.descricao.trim()) {
+      newErrors.descricao = "Descrição é obrigatória";
       isValid = false;
     }
 
-    // Validate company
-    if (!formData.company) {
-      newErrors.company = "Empresa é obrigatória";
+    if (!formData.empresaId) {
+      newErrors.empresaId = "Empresa é obrigatória";
       isValid = false;
     }
 
-    // Validate date
-    if (!formData.date) {
-      newErrors.date = "Data é obrigatória";
+    if (!formData.dataEmissao) {
+      newErrors.dataEmissao = "Data de emissão é obrigatória";
       isValid = false;
     }
 
-    // Validate value
-    if (!formData.value.trim()) {
-      newErrors.value = "Valor é obrigatório";
-      isValid = false;
-    } else if (!/^\d+(,\d{1,2})?$/.test(formData.value.trim())) {
-      newErrors.value = "Valor deve ser um número válido (ex: 1234,56)";
+    if (!formData.dataVencimento) {
+      newErrors.dataVencimento = "Data de vencimento é obrigatória";
       isValid = false;
     }
 
-    // Validate items
-    const itemErrors: Array<{
-      description?: string;
-      quantity?: string;
-      unitPrice?: string;
-    }> = [];
+    if (!formData.valor) {
+      newErrors.valor = "Valor é obrigatório";
+      isValid = false;
+    }
 
-    let hasItemErrors = false;
+    if (!formData.tipoPagamento) {
+      newErrors.tipoPagamento = "Tipo de pagamento é obrigatório";
+      isValid = false;
+    }
 
-    formData.items.forEach((item, index) => {
-      const itemError: {
-        description?: string;
-        quantity?: string;
-        unitPrice?: string;
-      } = {};
-
-      if (!item.description.trim()) {
-        itemError.description = "Descrição é obrigatória";
-        hasItemErrors = true;
-      }
-
-      if (!item.quantity.trim()) {
-        itemError.quantity = "Quantidade é obrigatória";
-        hasItemErrors = true;
-      } else if (!/^\d+$/.test(item.quantity.trim())) {
-        itemError.quantity = "Quantidade deve ser um número inteiro";
-        hasItemErrors = true;
-      }
-
-      if (!item.unitPrice.trim()) {
-        itemError.unitPrice = "Preço unitário é obrigatório";
-        hasItemErrors = true;
-      } else if (!/^\d+(,\d{1,2})?$/.test(item.unitPrice.trim())) {
-        itemError.unitPrice = "Preço deve ser um número válido (ex: 123,45)";
-        hasItemErrors = true;
-      }
-
-      itemErrors[index] = itemError;
-    });
-
-    if (hasItemErrors) {
-      newErrors.items = itemErrors;
+    if (formData.tipoPagamento === "BOLETO" && !formData.numeroBoleto) {
+      newErrors.numeroBoleto = "Número do boleto é obrigatório para este tipo de pagamento";
       isValid = false;
     }
 
@@ -262,40 +188,52 @@ export default function FormNotaFiscalPage({
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (validateForm()) {
-      setIsSubmitting(true);
-
-      // Simulate API call
-      setTimeout(() => {
-        setIsSubmitting(false);
-        // In a real app, you would save the data to your backend here
-        router.push("/notas-fiscais");
-      }, 1000);
-    } else {
+    if (!validateForm()) {
       setErrors((prev) => ({
         ...prev,
-        general:
-          "Por favor, corrija os erros no formulário antes de continuar.",
+        general: "Por favor, corrija os erros no formulário antes de continuar.",
       }));
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      if (notaFiscal?.id) {
+        await api.put(`/notas/${notaFiscal.id}`, formData);
+      } else {
+        await api.post("/notas", formData);
+      }
+      router.push("/notas-fiscais");
+    } catch (err) {
+      console.error("Error saving invoice:", err);
+      setErrors((prev) => ({
+        ...prev,
+        general: "Ocorreu um erro ao salvar a nota fiscal. Por favor, tente novamente.",
+      }));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const pageTitle = notaFiscal
-    ? "Editar Nota Fiscal"
-    : "Emitir Nova Nota Fiscal";
+  const pageTitle = notaFiscal ? "Editar Nota Fiscal" : "Cadastrar Nova Nota Fiscal";
   const pageDescription = notaFiscal
     ? "Atualize os dados da nota fiscal."
-    : "Preencha os dados para emitir uma nova nota fiscal.";
+    : "Preencha os dados para cadastrar uma nova nota fiscal.";
   const submitButtonText = notaFiscal
-    ? isSubmitting
-      ? "Salvando..."
-      : "Salvar Alterações"
-    : isSubmitting
-    ? "Emitindo..."
-    : "Emitir Nota Fiscal";
+    ? isSubmitting ? "Salvando..." : "Salvar Alterações"
+    : isSubmitting ? "Cadastrando..." : "Cadastrar Nota Fiscal";
+
+  const formatCurrency = (value: number): string => {
+    return value.toLocaleString('pt-BR', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2,
+      style: 'decimal'
+    });
+  };
 
   return (
     <div className="container mx-auto py-10">
@@ -314,222 +252,163 @@ export default function FormNotaFiscalPage({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="number" className="flex items-center gap-1">
-                    Número <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="number"
-                    placeholder="NF-e 000001"
-                    value={formData.number}
-                    onChange={handleChange}
-                    className={errors.number ? "border-destructive" : ""}
-                  />
-                  {errors.number && (
-                    <p className="text-sm text-destructive">{errors.number}</p>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="descricao" className="flex items-center gap-1">
+                  Descrição <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="descricao"
+                  placeholder="Descrição da nota fiscal"
+                  value={formData.descricao}
+                  onChange={handleChange}
+                  className={errors.descricao ? "border-destructive" : ""}
+                />
+                {errors.descricao && (
+                  <p className="text-sm text-destructive">{errors.descricao}</p>
+                )}
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="company" className="flex items-center gap-1">
-                    Empresa <span className="text-destructive">*</span>
-                  </Label>
-                  <Select
-                    value={formData.company}
-                    onValueChange={(value) =>
-                      handleSelectChange("company", value)
-                    }
-                  >
-                    <SelectTrigger
-                      className={errors.company ? "border-destructive" : ""}
-                    >
-                      <SelectValue placeholder="Selecione uma empresa" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companies.map((company) => (
-                        <SelectItem key={company.id} value={company.name}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.company && (
-                    <p className="text-sm text-destructive">{errors.company}</p>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="empresaId" className="flex items-center gap-1">
+                  Empresa <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={formData.empresaId.toString()}
+                  onValueChange={(value) => handleSelectChange("empresaId", parseInt(value))}
+                >
+                  <SelectTrigger className={errors.empresaId ? "border-destructive" : ""}>
+                    <SelectValue placeholder="Selecione uma empresa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies.map((company) => (
+                      <SelectItem key={company.id} value={company.id.toString()}>
+                        {company.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.empresaId && (
+                  <p className="text-sm text-destructive">{errors.empresaId}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="date" className="flex items-center gap-1">
-                    Data <span className="text-destructive">*</span>
+                  <Label htmlFor="dataEmissao" className="flex items-center gap-1">
+                    Data de Emissão <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    id="date"
+                    id="dataEmissao"
                     type="date"
-                    value={formData.date}
+                    value={formData.dataEmissao}
                     onChange={handleChange}
-                    className={errors.date ? "border-destructive" : ""}
+                    className={errors.dataEmissao ? "border-destructive" : ""}
                   />
-                  {errors.date && (
-                    <p className="text-sm text-destructive">{errors.date}</p>
+                  {errors.dataEmissao && (
+                    <p className="text-sm text-destructive">{errors.dataEmissao}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="value" className="flex items-center gap-1">
-                    Valor Total (R$) <span className="text-destructive">*</span>
+                  <Label htmlFor="dataVencimento" className="flex items-center gap-1">
+                    Data de Vencimento <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    id="value"
-                    placeholder="0,00"
-                    value={formData.value}
+                    id="dataVencimento"
+                    type="date"
+                    value={formData.dataVencimento}
                     onChange={handleChange}
-                    className={errors.value ? "border-destructive" : ""}
+                    className={errors.dataVencimento ? "border-destructive" : ""}
                   />
-                  {errors.value && (
-                    <p className="text-sm text-destructive">{errors.value}</p>
+                  {errors.dataVencimento && (
+                    <p className="text-sm text-destructive">{errors.dataVencimento}</p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="valor" className="flex items-center gap-1">
+                  Valor (R$) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="valor"
+                  placeholder="0,00"
+                  value={formatCurrency(formData.valor)}
+                  onChange={handleCurrencyInput}
+                  className={errors.valor ? "border-destructive" : ""}
+                />
+                {errors.valor && (
+                  <p className="text-sm text-destructive">{errors.valor}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tipoPagamento" className="flex items-center gap-1">
+                  Tipo de Pagamento <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={formData.tipoPagamento}
+                  onValueChange={(value) => handleSelectChange("tipoPagamento", value)}
+                >
+                  <SelectTrigger className={errors.tipoPagamento ? "border-destructive" : ""}>
+                    <SelectValue placeholder="Selecione o tipo de pagamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BOLETO">Boleto</SelectItem>
+                    <SelectItem value="PIX">PIX</SelectItem>
+                    <SelectItem value="CARTAO_CREDITO">Cartão de Crédito</SelectItem>
+                    <SelectItem value="TRANSFERENCIA_BANCARIA">Transferência Bancária</SelectItem>
+                    <SelectItem value="DINHEIRO">Dinheiro</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.tipoPagamento && (
+                  <p className="text-sm text-destructive">{errors.tipoPagamento}</p>
+                )}
+              </div>
+
+              {formData.tipoPagamento === "BOLETO" && (
+                <div className="space-y-2">
+                  <Label htmlFor="numeroBoleto" className="flex items-center gap-1">
+                    Número do Boleto <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="numeroBoleto"
+                    placeholder="Digite o número do boleto"
+                    value={formData.numeroBoleto || ""}
+                    onChange={handleChange}
+                    className={errors.numeroBoleto ? "border-destructive" : ""}
+                  />
+                  {errors.numeroBoleto && (
+                    <p className="text-sm text-destructive">{errors.numeroBoleto}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="status" className="flex items-center gap-1">
+                  Status <span className="text-destructive">*</span>
+                </Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value) => handleSelectChange("status", value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione um status" />
+                    <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Pendente">Pendente</SelectItem>
-                    <SelectItem value="Emitida">Emitida</SelectItem>
-                    <SelectItem value="Cancelada">Cancelada</SelectItem>
+                    <SelectItem value="PENDENTE">Pendente</SelectItem>
+                    <SelectItem value="PAGO">Pago</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Label className="text-lg">Itens da Nota Fiscal</Label>
-                  <Button type="button" variant="outline" onClick={addItem}>
-                    Adicionar Item
-                  </Button>
-                </div>
-
-                {formData.items.map((item, index) => (
-                  <div key={index} className="border p-4 rounded-md space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-medium">Item {index + 1}</h4>
-                      {formData.items.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeItem(index)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          Remover
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor={`item-${index}-description`}
-                        className="flex items-center gap-1"
-                      >
-                        Descrição <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        id={`item-${index}-description`}
-                        placeholder="Descrição do item"
-                        value={item.description}
-                        onChange={(e) =>
-                          handleItemChange(index, "description", e.target.value)
-                        }
-                        className={
-                          errors.items && errors.items[index]?.description
-                            ? "border-destructive"
-                            : ""
-                        }
-                      />
-                      {errors.items && errors.items[index]?.description && (
-                        <p className="text-sm text-destructive">
-                          {errors.items[index].description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor={`item-${index}-quantity`}
-                          className="flex items-center gap-1"
-                        >
-                          Quantidade <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                          id={`item-${index}-quantity`}
-                          placeholder="0"
-                          value={item.quantity}
-                          onChange={(e) =>
-                            handleItemChange(index, "quantity", e.target.value)
-                          }
-                          className={
-                            errors.items && errors.items[index]?.quantity
-                              ? "border-destructive"
-                              : ""
-                          }
-                        />
-                        {errors.items && errors.items[index]?.quantity && (
-                          <p className="text-sm text-destructive">
-                            {errors.items[index].quantity}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor={`item-${index}-unitPrice`}
-                          className="flex items-center gap-1"
-                        >
-                          Preço Unitário (R$){" "}
-                          <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                          id={`item-${index}-unitPrice`}
-                          placeholder="0,00"
-                          value={item.unitPrice}
-                          onChange={(e) =>
-                            handleItemChange(index, "unitPrice", e.target.value)
-                          }
-                          className={
-                            errors.items && errors.items[index]?.unitPrice
-                              ? "border-destructive"
-                              : ""
-                          }
-                        />
-                        {errors.items && errors.items[index]?.unitPrice && (
-                          <p className="text-sm text-destructive">
-                            {errors.items[index].unitPrice}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
               <Link href="/notas-fiscais">
-                <Button variant="outline" type="button">
+                <Button variant="outline" type="button" className="cursor-pointer">
                   Cancelar
                 </Button>
               </Link>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
                 {submitButtonText}
               </Button>
             </CardFooter>
