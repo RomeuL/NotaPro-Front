@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PlusCircle, Pencil, Trash2, X, ChevronLeft, ChevronRight, CalendarIcon, CreditCard, CheckCircle2, Clock, AlertCircle, Search } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, X, ChevronLeft, ChevronRight, CalendarIcon, CreditCard, CheckCircle2, Clock, AlertCircle, Search, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -213,73 +213,90 @@ export default function NotasFiscaisPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Gerenciamento de Notas Fiscais</h1>
-        <Link href="/notas-fiscais/emitir">
-          <Button className="cursor-pointer">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Cadastrar Nova Nota Fiscal
-          </Button>
-        </Link>
+      <div className="bg-[#1a365d] text-white p-6 rounded-t-lg mb-6 shadow-md">
+        <div className="flex items-center gap-3">
+          <FileText className="h-8 w-8" />
+          <h1 className="text-3xl font-bold">Gerenciamento de Notas Fiscais</h1>
+        </div>
       </div>
 
       {error && (
-        <div className="bg-destructive/15 p-3 rounded-md text-destructive mb-6">
-          {error}
+        <div className="bg-red-100 border-l-4 border-red-500 p-4 rounded-md text-red-700 mb-6">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            {error}
+          </div>
         </div>
       )}
 
-      <div className="mb-6 space-y-3">
-        <Tabs 
-          defaultValue="TODOS" 
-          value={statusFilter} 
-          onValueChange={(value) => setStatusFilter(value as "TODOS" | "PENDENTE" | "PAGO")}
-          className="w-full"
-        >
-          <TabsList className="mb-2">
-            <TabsTrigger value="TODOS" className="cursor-pointer">
-              Todas
-            </TabsTrigger>
-            <TabsTrigger value="PENDENTE" className="cursor-pointer">
-              <Clock className="mr-1 h-4 w-4" /> Pendentes
-            </TabsTrigger>
-            <TabsTrigger value="PAGO" className="cursor-pointer">
-              <CheckCircle2 className="mr-1 h-4 w-4" /> Pagas
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        <div className="flex items-center gap-2 max-w-sm relative">
-          <Search className="absolute left-2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por descrição ou empresa..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8"
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchQuery("")}
-              className="shrink-0 cursor-pointer"
+      <div className="rounded-lg border border-gray-200 overflow-hidden shadow-md mb-6">
+        <div className="bg-white p-4 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <Tabs 
+              defaultValue="TODOS" 
+              value={statusFilter} 
+              onValueChange={(value) => setStatusFilter(value as "TODOS" | "PENDENTE" | "PAGO")}
+              className="w-full sm:w-auto"
             >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+              <TabsList className="w-full sm:w-auto">
+                <TabsTrigger value="TODOS" className="cursor-pointer">
+                  Todas
+                </TabsTrigger>
+                <TabsTrigger value="PENDENTE" className="cursor-pointer">
+                  <Clock className="mr-1 h-4 w-4" /> Pendentes
+                </TabsTrigger>
+                <TabsTrigger value="PAGO" className="cursor-pointer">
+                  <CheckCircle2 className="mr-1 h-4 w-4" /> Pagas
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto sm:max-w-md md:max-w-lg relative">
+              <Search className="absolute left-2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por descrição ou empresa..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 border-gray-300 focus:border-[#1a365d] focus:ring-[#1a365d]"
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchQuery("")}
+                  className="shrink-0 text-gray-500 hover:text-[#1a365d]"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            <Link href="/notas-fiscais/emitir" className="w-full sm:w-auto">
+              <Button className="bg-[#1a365d] text-white hover:bg-[#0f172a] cursor-pointer transition-colors w-full sm:w-auto">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Cadastrar Nova Nota Fiscal
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-12">
-          <p className="text-lg text-muted-foreground">Carregando notas fiscais...</p>
+        <div className="text-center py-12 bg-white rounded-lg shadow-md">
+          <div className="flex justify-center">
+            <svg className="animate-spin h-8 w-8 text-[#1a365d]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+          <p className="mt-2 text-gray-600">Carregando notas fiscais...</p>
         </div>
       ) : currentInvoices.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           {currentInvoices.map((invoice) => (
-            <Card key={invoice.id} className="h-full flex flex-col">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium">
+            <Card key={invoice.id} className="h-full flex flex-col shadow-md hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2 border-b">
+                <CardTitle className="text-lg font-medium text-[#1a365d]">
                   <div className="line-clamp-2 mr-2">{invoice.descricao}</div>
                 </CardTitle>
                 <div className="mt-2 flex justify-between items-center">
@@ -289,12 +306,16 @@ export default function NotasFiscaisPage() {
                   </span>
                 </div>
               </CardHeader>
-              <CardContent className="flex-grow pb-2">
+              <CardContent className="flex-grow pb-2 pt-4">
                 <div className="space-y-3">
                   <Button 
                     variant={invoice.status === "PENDENTE" ? "default" : "outline"} 
                     size="sm" 
-                    className="w-full cursor-pointer mb-2"
+                    className={`w-full cursor-pointer mb-2 transition-colors ${
+                      invoice.status === "PENDENTE" 
+                        ? "bg-green-600 hover:bg-green-700 text-white" 
+                        : "hover:bg-yellow-100"
+                    }`}
                     onClick={() => toggleStatus(invoice.id, invoice.status)}
                   >
                     {invoice.status === "PENDENTE" 
@@ -330,9 +351,13 @@ export default function NotasFiscaisPage() {
                   )}
                 </div>
               </CardContent>
-              <CardFooter className="pt-2 flex justify-center gap-2">
+              <CardFooter className="pt-4 pb-4 flex justify-center gap-2 border-t">
                 <Link href={`/notas-fiscais/editar/${invoice.id}`}>
-                  <Button variant="outline" size="sm" className="cursor-pointer">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-gray-300 text-[#1a365d] hover:bg-[#1a365d] hover:text-white transition-colors cursor-pointer"
+                  >
                     <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
                   </Button>
                 </Link>
@@ -340,7 +365,7 @@ export default function NotasFiscaisPage() {
                   variant="outline" 
                   size="sm" 
                   onClick={() => handleDelete(invoice.id)}
-                  className="cursor-pointer bg-red-400 hover:bg-red-500 text-white border-red-400"
+                  className="border-red-300 text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
                 </Button>
@@ -349,15 +374,26 @@ export default function NotasFiscaisPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-lg text-muted-foreground">Nenhuma nota fiscal encontrada</p>
+        <div className="text-center py-12 bg-white rounded-lg shadow-md">
+          <div className="flex flex-col items-center">
+            <FileText className="h-12 w-12 mb-4 text-gray-400" />
+            <p className="text-lg text-gray-500 mb-4">Nenhuma nota fiscal encontrada</p>
+            <Link href="/notas-fiscais/emitir">
+              <Button 
+                className="bg-[#1a365d] text-white hover:bg-[#0f172a] cursor-pointer transition-colors"
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Cadastrar Nova Nota Fiscal
+              </Button>
+            </Link>
+          </div>
         </div>
       )}
 
       {filteredInvoices.length > invoicesPerPage && (
-        <div className="flex items-center justify-between pt-4">
-          <div className="text-sm text-muted-foreground">
-            Mostrando {filteredInvoices.length > 0 ? startIndex + 1 : 0}-{endIndex} de {filteredInvoices.length} 
+        <div className="flex items-center justify-between py-6 mt-2 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">Mostrando</span> {filteredInvoices.length > 0 ? startIndex + 1 : 0}-{endIndex} <span className="font-medium">de</span> {filteredInvoices.length} 
             {(searchQuery || statusFilter !== "TODOS") && ` (filtrado de ${invoices.length})`} notas fiscais
           </div>
           <div className="flex items-center space-x-2">
@@ -366,7 +402,7 @@ export default function NotasFiscaisPage() {
               size="sm"
               onClick={prevPage}
               disabled={currentPage === 1}
-              className="cursor-pointer"
+              className="border-gray-300 text-gray-700 hover:bg-[#1a365d] hover:text-white disabled:opacity-50 cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -378,7 +414,9 @@ export default function NotasFiscaisPage() {
                   size="sm"
                   onClick={() => goToPage(page)}
                   className={`cursor-pointer w-8 h-8 p-0 ${
-                    page === currentPage ? "bg-primary text-primary-foreground" : ""
+                    page === currentPage 
+                      ? "bg-[#1a365d] text-white" 
+                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   {page}
@@ -390,7 +428,7 @@ export default function NotasFiscaisPage() {
               size="sm"
               onClick={nextPage}
               disabled={currentPage === totalPages}
-              className="cursor-pointer"
+              className="border-gray-300 text-gray-700 hover:bg-[#1a365d] hover:text-white disabled:opacity-50 cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -408,10 +446,12 @@ export default function NotasFiscaisPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="hover:bg-gray-100 transition-colors cursor-pointer">
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+              className="bg-red-500 text-white hover:bg-red-600 transition-colors cursor-pointer"
               disabled={isLoading}
             >
               {isLoading ? "Excluindo..." : "Excluir"}

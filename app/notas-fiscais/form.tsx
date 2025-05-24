@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, FileText, ArrowLeft, Save } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -100,9 +100,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
     
     if (id === 'valor') {
       const numbersOnly = value.replace(/[^\d,\.]/g, '');
-      
       const normalizedValue = numbersOnly.replace(',', '.');
-      
       const numericValue = parseFloat(normalizedValue) || 0;
       
       setFormData((prev) => ({ 
@@ -119,12 +117,8 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
   };
 
   const handleCurrencyInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cursorPosition = e.target.selectionStart;
-    
     const unformattedValue = e.target.value.replace(/[^\d]/g, '');
-    
     const cents = unformattedValue === '' ? 0 : parseInt(unformattedValue);
-    
     const valueAsFloat = cents / 100;
     
     setFormData((prev) => ({ 
@@ -237,14 +231,22 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
 
   return (
     <div className="container mx-auto py-10">
+      <div className="bg-[#1a365d] text-white p-6 rounded-t-lg mb-6 shadow-md">
+        <div className="flex items-center gap-3">
+          <FileText className="h-8 w-8" />
+          <h1 className="text-3xl font-bold">{pageTitle}</h1>
+        </div>
+      </div>
+      
       <div className="max-w-3xl mx-auto">
         <form onSubmit={handleSubmit}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">{pageTitle}</CardTitle>
+          <Card className="shadow-md">
+            <CardHeader className="border-b pb-3">
+              <CardTitle className="text-xl text-[#1a365d]">{pageTitle}</CardTitle>
               <CardDescription>{pageDescription}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            
+            <CardContent className="space-y-6 pt-5">
               {errors.general && (
                 <div className="bg-destructive/15 p-3 rounded-md flex items-center gap-2 text-destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -253,7 +255,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="descricao" className="flex items-center gap-1">
+                <Label htmlFor="descricao" className="flex items-center gap-1 font-medium">
                   Descrição <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -261,7 +263,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
                   placeholder="Descrição da nota fiscal"
                   value={formData.descricao}
                   onChange={handleChange}
-                  className={errors.descricao ? "border-destructive" : ""}
+                  className={errors.descricao ? "border-destructive focus:ring-destructive" : "focus:ring-[#1a365d] focus:border-[#1a365d]"}
                 />
                 {errors.descricao && (
                   <p className="text-sm text-destructive">{errors.descricao}</p>
@@ -269,7 +271,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="empresaId" className="flex items-center gap-1">
+                <Label htmlFor="empresaId" className="flex items-center gap-1 font-medium">
                   Empresa <span className="text-destructive">*</span>
                 </Label>
                 <Select
@@ -292,9 +294,9 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="dataEmissao" className="flex items-center gap-1">
+                  <Label htmlFor="dataEmissao" className="flex items-center gap-1 font-medium">
                     Data de Emissão <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -302,7 +304,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
                     type="date"
                     value={formData.dataEmissao}
                     onChange={handleChange}
-                    className={errors.dataEmissao ? "border-destructive" : ""}
+                    className={errors.dataEmissao ? "border-destructive" : "focus:ring-[#1a365d] focus:border-[#1a365d]"}
                   />
                   {errors.dataEmissao && (
                     <p className="text-sm text-destructive">{errors.dataEmissao}</p>
@@ -310,7 +312,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dataVencimento" className="flex items-center gap-1">
+                  <Label htmlFor="dataVencimento" className="flex items-center gap-1 font-medium">
                     Data de Vencimento <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -318,7 +320,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
                     type="date"
                     value={formData.dataVencimento}
                     onChange={handleChange}
-                    className={errors.dataVencimento ? "border-destructive" : ""}
+                    className={errors.dataVencimento ? "border-destructive" : "focus:ring-[#1a365d] focus:border-[#1a365d]"}
                   />
                   {errors.dataVencimento && (
                     <p className="text-sm text-destructive">{errors.dataVencimento}</p>
@@ -327,7 +329,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="valor" className="flex items-center gap-1">
+                <Label htmlFor="valor" className="flex items-center gap-1 font-medium">
                   Valor (R$) <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -335,7 +337,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
                   placeholder="0,00"
                   value={formatCurrency(formData.valor)}
                   onChange={handleCurrencyInput}
-                  className={errors.valor ? "border-destructive" : ""}
+                  className={errors.valor ? "border-destructive" : "focus:ring-[#1a365d] focus:border-[#1a365d]"}
                 />
                 {errors.valor && (
                   <p className="text-sm text-destructive">{errors.valor}</p>
@@ -343,7 +345,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tipoPagamento" className="flex items-center gap-1">
+                <Label htmlFor="tipoPagamento" className="flex items-center gap-1 font-medium">
                   Tipo de Pagamento <span className="text-destructive">*</span>
                 </Label>
                 <Select
@@ -368,7 +370,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
 
               {formData.tipoPagamento === "BOLETO" && (
                 <div className="space-y-2">
-                  <Label htmlFor="numeroBoleto" className="flex items-center gap-1">
+                  <Label htmlFor="numeroBoleto" className="flex items-center gap-1 font-medium">
                     Número do Boleto <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -376,7 +378,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
                     placeholder="Digite o número do boleto"
                     value={formData.numeroBoleto || ""}
                     onChange={handleChange}
-                    className={errors.numeroBoleto ? "border-destructive" : ""}
+                    className={errors.numeroBoleto ? "border-destructive" : "focus:ring-[#1a365d] focus:border-[#1a365d]"}
                   />
                   {errors.numeroBoleto && (
                     <p className="text-sm text-destructive">{errors.numeroBoleto}</p>
@@ -385,14 +387,14 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="status" className="flex items-center gap-1">
+                <Label htmlFor="status" className="flex items-center gap-1 font-medium">
                   Status <span className="text-destructive">*</span>
                 </Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value) => handleSelectChange("status", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="focus:ring-[#1a365d] focus:border-[#1a365d]">
                     <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -402,14 +404,23 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
                 </Select>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            
+            <CardFooter className="flex justify-between pt-5 border-t">
               <Link href="/notas-fiscais">
-                <Button variant="outline" type="button" className="cursor-pointer">
-                  Cancelar
+                <Button 
+                  variant="outline" 
+                  type="button"
+                  className="cursor-pointer border-gray-300 hover:bg-gray-100 transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
                 </Button>
               </Link>
-              <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
-                {submitButtonText}
+              <Button 
+                type="submit" 
+                disabled={isSubmitting} 
+                className="bg-[#1a365d] text-white hover:bg-[#0f172a] transition-colors cursor-pointer"
+              >
+                <Save className="h-4 w-4 mr-2" /> {submitButtonText}
               </Button>
             </CardFooter>
           </Card>

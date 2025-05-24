@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PlusCircle, Pencil, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, X, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -220,44 +220,55 @@ export default function EmpresasPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Gerenciamento de Empresas</h1>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="cursor-pointer">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Cadastrar Nova Empresa
-        </Button>
+      <div className="bg-[#1a365d] text-white p-6 rounded-t-lg mb-6 shadow-md">
+        <div className="flex items-center gap-3">
+          <Building2 className="h-8 w-8" />
+          <h1 className="text-3xl font-bold">Gerenciamento de Empresas</h1>
+        </div>
       </div>
 
       {error && (
-        <div className="bg-destructive/15 p-3 rounded-md text-destructive mb-6">
-          {error}
+        <div className="bg-red-100 border-l-4 border-red-500 p-4 rounded-md text-red-700 mb-6">
+          <div className="flex items-center">
+            <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            {error}
+          </div>
         </div>
       )}
 
-      <div className="mb-4">
-        <div className="flex items-center gap-2 max-w-sm">
-          <Input
-            placeholder="Buscar empresa por nome..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchQuery("")}
-              className="shrink-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+      <div className="rounded-lg border border-gray-200 overflow-hidden shadow-md">
+        <div className="bg-white p-4 border-b border-gray-200 flex justify-between items-center">
+          <div className="flex items-center gap-2 max-w-sm">
+            <Input
+              placeholder="Buscar empresa por nome..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full border-gray-300 focus:border-[#1a365d] focus:ring-[#1a365d]"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearchQuery("")}
+                className="shrink-0 text-gray-500 hover:text-[#1a365d]"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)} 
+            className="bg-[#1a365d] text-white hover:bg-[#0f172a] cursor-pointer transition-colors"
+          >
+            <PlusCircle className="mr-2 h-5 w-5" />
+            Cadastrar Nova Empresa
+          </Button>
         </div>
-      </div>
 
-      <div className="rounded-md border">
-        <Table className="bg-gray-200">
-          <TableHeader className="bg-gray-200">
+        <Table>
+          <TableHeader className="bg-[#1a365d] text-white">
             <TableRow>
               <TableHead className="font-semibold">Nome</TableHead>
               <TableHead className="font-semibold">CNPJ</TableHead>
@@ -267,14 +278,20 @@ export default function EmpresasPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-6">
-                  Carregando empresas...
+                <TableCell colSpan={3} className="text-center py-8 bg-gray-50">
+                  <div className="flex justify-center">
+                    <svg className="animate-spin h-6 w-6 text-[#1a365d]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="ml-2 text-gray-600">Carregando empresas...</span>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : companies.length > 0 ? (
-              currentCompanies.map((company) => (
-                <TableRow key={company.id}>
-                  <TableCell className="font-medium">{company.nome}</TableCell>
+              currentCompanies.map((company, index) => (
+                <TableRow key={company.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-blue-50'}>
+                  <TableCell className="font-medium text-[#1a365d]">{company.nome}</TableCell>
                   <TableCell>{formatCNPJ(company.cnpj)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -282,7 +299,7 @@ export default function EmpresasPage() {
                         variant="outline"
                         size="icon"
                         onClick={() => handleEditClick(company)}
-                        className="cursor-pointer hover:bg-gray-300"
+                        className="border-gray-300 text-[#1a365d] hover:bg-[#1a365d] hover:text-white transition-colors cursor-pointer"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -290,7 +307,7 @@ export default function EmpresasPage() {
                         variant="outline"
                         size="icon"
                         onClick={() => handleDelete(company.id)}
-                        className="cursor-pointer bg-red-400 hover:bg-red-500 text-white border-red-400"
+                        className="border-red-300 text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -302,9 +319,19 @@ export default function EmpresasPage() {
               <TableRow>
                 <TableCell
                   colSpan={3}
-                  className="text-center py-6 text-muted-foreground"
+                  className="text-center py-10 text-gray-500 bg-gray-50"
                 >
-                  Nenhuma empresa cadastrada
+                  <div className="flex flex-col items-center">
+                    <Building2 className="h-10 w-10 mb-2 text-gray-400" />
+                    <p>Nenhuma empresa cadastrada</p>
+                    <Button 
+                      onClick={() => setIsCreateModalOpen(true)}
+                      variant="link" 
+                      className="mt-2 text-[#1a365d]"
+                    >
+                      Cadastrar sua primeira empresa
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -322,10 +349,12 @@ export default function EmpresasPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="hover:bg-gray-100 transition-colors cursor-pointer">
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-white hover:bg-destructive/90 transition-colors cursor-pointer"
               disabled={isLoading}
             >
               {isLoading ? "Excluindo..." : "Excluir"}
@@ -335,9 +364,9 @@ export default function EmpresasPage() {
       </AlertDialog>
 
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Cadastrar Nova Empresa</DialogTitle>
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader className="border-b pb-3">
+            <DialogTitle className="text-xl text-[#1a365d]">Cadastrar Nova Empresa</DialogTitle>
             <DialogDescription>
               Preencha os dados da empresa para cadastrá-la no sistema.
             </DialogDescription>
@@ -384,8 +413,12 @@ export default function EmpresasPage() {
                 )}
               </div>
             </div>
-            <DialogFooter>
-              <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
+            <DialogFooter className="mt-6">
+              <Button 
+                type="submit" 
+                disabled={isSubmitting} 
+                className="bg-[#1a365d] hover:bg-[#0f172a] text-white cursor-pointer"
+              >
                 {isSubmitting ? "Salvando..." : "Salvar Empresa"}
               </Button>
             </DialogFooter>
@@ -394,9 +427,9 @@ export default function EmpresasPage() {
       </Dialog>
 
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Editar Empresa</DialogTitle>
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader className="border-b pb-3">
+            <DialogTitle className="text-xl text-[#1a365d]">Editar Empresa</DialogTitle>
             <DialogDescription>
               Atualize os dados da empresa no sistema.
             </DialogDescription>
@@ -444,7 +477,11 @@ export default function EmpresasPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
+              <Button 
+                type="submit" 
+                disabled={isSubmitting} 
+                className="bg-[#1a365d] text-white hover:bg-[#0f172a] cursor-pointer transition-colors"
+              >
                 {isSubmitting ? "Salvando..." : "Atualizar Empresa"}
               </Button>
             </DialogFooter>
@@ -453,9 +490,9 @@ export default function EmpresasPage() {
       </Dialog>
 
       {companies.length > 0 && (
-        <div className="flex items-center justify-between py-4">
-          <div className="text-sm text-muted-foreground">
-            Mostrando {filteredCompanies.length > 0 ? startIndex + 1 : 0}-{endIndex} de {filteredCompanies.length} 
+        <div className="flex items-center justify-between py-6 mt-2 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">Mostrando</span> {filteredCompanies.length > 0 ? startIndex + 1 : 0}-{endIndex} <span className="font-medium">de</span> {filteredCompanies.length} 
             {searchQuery && ` (filtrado de ${companies.length})`} empresas
           </div>
           <div className="flex items-center space-x-2">
@@ -464,7 +501,7 @@ export default function EmpresasPage() {
               size="sm"
               onClick={prevPage}
               disabled={currentPage === 1}
-              className="cursor-pointer"
+              className="border-gray-300 text-gray-700 hover:bg-[#1a365d] hover:text-white disabled:opacity-50 cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -476,7 +513,9 @@ export default function EmpresasPage() {
                   size="sm"
                   onClick={() => goToPage(page)}
                   className={`cursor-pointer w-8 h-8 p-0 ${
-                    page === currentPage ? "bg-primary text-primary-foreground" : ""
+                    page === currentPage 
+                      ? "bg-[#1a365d] text-white" 
+                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   {page}
@@ -488,7 +527,7 @@ export default function EmpresasPage() {
               size="sm"
               onClick={nextPage}
               disabled={currentPage === totalPages}
-              className="cursor-pointer"
+              className="border-gray-300 text-gray-700 hover:bg-[#1a365d] hover:text-white disabled:opacity-50 cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

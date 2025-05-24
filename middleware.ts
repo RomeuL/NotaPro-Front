@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-const publicRoutes = ['/signin', '/signup', '/', '/forgot-password'];
+const publicRoutes = ['/signin'];
+
 const adminRoutes = ['/admin', '/admin/usuarios'];
 
 export function middleware(request: NextRequest) {
@@ -46,7 +46,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
-}
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
+};

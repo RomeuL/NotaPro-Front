@@ -27,6 +27,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  const clearAuthData = () => {
+    Cookies.remove('auth-token', { path: '/' });
+    Cookies.remove('user', { path: '/' });
+    
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    setUser(null);
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const token = Cookies.get('auth-token');
@@ -36,19 +46,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userData = localStorage.getItem('user');
           if (userData) {
             setUser(JSON.parse(userData));
-            Cookies.set('user', userData, { expires: 2 });
           } else {
-            Cookies.remove('auth-token');
-            Cookies.remove('user');
-            localStorage.removeItem('token');
+            clearAuthData();
           }
         } catch (error) {
           console.error('Erro ao verificar autenticação:', error);
-          Cookies.remove('auth-token');
-          Cookies.remove('user');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          clearAuthData();
         }
+      } else {
+        clearAuthData();
       }
       
       setIsLoading(false);
@@ -61,10 +67,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     try {
+      clearAuthData();
+      
       const response = await authService.login(email, senha);
       
       if (response.token) {
-        Cookies.set('auth-token', response.token, { expires: 2 });
+        Cookies.set('auth-token', response.token, { 
+          expires: 2,
+          path: '/',
+          sameSite: 'strict'
+        });
+        
         localStorage.setItem('token', response.token);
         
         const userData: User = {
@@ -75,7 +88,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         
         localStorage.setItem('user', JSON.stringify(userData));
-        Cookies.set('user', JSON.stringify(userData), { expires: 2 });
+        
+        Cookies.set('user', JSON.stringify(userData), { 
+          expires: 2,
+          path: '/',
+          sameSite: 'strict'
+        });
         
         setUser(userData);
         
@@ -89,23 +107,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    Cookies.remove('auth-token');
-    Cookies.remove('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const logout = async () => {
+    await authService.logout();
     setUser(null);
-    router.push('/signin');
+    
+    window.location.href = '/signin';
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isLoading, 
-      isAuthenticated: !!user, 
-      login, 
-      logout 
-    }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

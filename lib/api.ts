@@ -1,8 +1,10 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+const API_URL ='https:notaproapi.romeu.dev.br/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -41,8 +43,17 @@ export const authService = {
   },
   
   logout: async () => {
-    Cookies.remove('auth-token');
+    Cookies.remove('auth-token', { path: '/' });
+    Cookies.remove('user', { path: '/' });
+    
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    if (typeof window !== 'undefined') {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+    }
+    
+    return true;
   },
 };
