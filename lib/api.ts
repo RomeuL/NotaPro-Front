@@ -3,6 +3,8 @@ import Cookies from 'js-cookie';
 
 const API_URL ='https://notaproapi.romeu.dev.br/api';
 
+//const API_URL ='http://localhost:8080/api';
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {

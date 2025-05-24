@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import api from "@/lib/api";
+import { useStatistics } from "@/contexts/StatisticsContext";
 
 interface Invoice {
   id: number;
@@ -63,6 +64,8 @@ export default function NotasFiscaisPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const invoicesPerPage = 6;
 
+  const { refreshStats } = useStatistics();
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -98,6 +101,7 @@ export default function NotasFiscaisPage() {
         setIsLoading(true);
         await api.delete(`/notas/${deleteId}`);
         setInvoices(invoices.filter((invoice) => invoice.id !== deleteId));
+        await refreshStats();
         setError(null);
       } catch (err) {
         console.error("Error deleting invoice:", err);
@@ -198,6 +202,8 @@ export default function NotasFiscaisPage() {
         ...invoiceToUpdate,
         status: newStatus
       });
+      
+      await refreshStats();
       
       setInvoices(
         invoices.map((invoice) =>

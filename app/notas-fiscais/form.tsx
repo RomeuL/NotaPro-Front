@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import api from "@/lib/api";
+import { useStatistics } from "@/contexts/StatisticsContext";
 
 interface Invoice {
   id?: number;
@@ -59,6 +60,7 @@ interface FormNotaFiscalProps {
 
 export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) {
   const router = useRouter();
+  const { refreshStats } = useStatistics();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [formData, setFormData] = useState<Invoice>({
     descricao: "",
@@ -201,6 +203,9 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
       } else {
         await api.post("/notas", formData);
       }
+      
+      await refreshStats();
+      
       router.push("/notas-fiscais");
     } catch (err) {
       console.error("Error saving invoice:", err);

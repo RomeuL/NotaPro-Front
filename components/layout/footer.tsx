@@ -1,24 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { BarChart3, DollarSign, PiggyBank, FileCheck, Clock, Info } from "lucide-react";
-import api from "@/lib/api";
-
-interface SystemStats {
-  totalNotas: number;
-  notasPendentes: number;
-  notasPagas: number;
-  valorTotalNotas: number;
-  valorTotalPendente: number;
-  valorTotalPago: number;
-  valorMedioPorNota: number;
-  totalEmpresas: number;
-}
+import { useStatistics } from "@/contexts/StatisticsContext";
 
 export function Footer() {
-  const [stats, setStats] = useState<SystemStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { stats, isLoading, error } = useStatistics();
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -26,27 +12,6 @@ export function Footer() {
       currency: 'BRL'
     }).format(value);
   };
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await api.get("/estatisticas/notas");
-        setStats(response.data);
-        setError(null);
-      } catch (err) {
-        console.error("Erro ao carregar estatísticas:", err);
-        setError("Falha ao carregar estatísticas");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStats();
-
-    const interval = setInterval(fetchStats, 10000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <footer className="border-t bg-white py-4 shadow-inner">
@@ -122,5 +87,5 @@ export function Footer() {
         )}
       </div>
     </footer>
-  )
+  );
 }

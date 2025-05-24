@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
 import { Providers } from './providers';
 import { LayoutWrapper } from '@/components/layout/layout-wrapper';
+import { StatisticsProvider } from "@/contexts/StatisticsContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +24,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light">
           <Providers>
-            <LayoutWrapper>{children}</LayoutWrapper>
+            <StatisticsProvider>
+              <LayoutWrapper>{children}</LayoutWrapper>
+            </StatisticsProvider>
           </Providers>
         </ThemeProvider>
       </body>
