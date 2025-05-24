@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL ='https:notaproapi.romeu.dev.br/api';
+const API_URL ='https://notaproapi.romeu.dev.br/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -51,9 +51,7 @@ export const authService = {
     
     if (typeof window !== 'undefined') {
       await new Promise(resolve => setTimeout(resolve, 100));
-      
     }
-    
     return true;
   },
 };

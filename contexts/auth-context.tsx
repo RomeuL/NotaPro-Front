@@ -39,14 +39,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkAuth = async () => {
+      setIsLoading(true);
       const token = Cookies.get('auth-token');
       
       if (token) {
         try {
-          const userData = localStorage.getItem('user');
-          if (userData) {
-            setUser(JSON.parse(userData));
+          let userData;
+          const userCookie = Cookies.get('user');
+          
+          if (userCookie) {
+            userData = JSON.parse(userCookie);
           } else {
+            const localStorageUser = localStorage.getItem('user');
+            if (localStorageUser) {
+              userData = JSON.parse(localStorageUser);
+              Cookies.set('user', localStorageUser, { 
+                expires: 2,
+                path: '/',
+                sameSite: 'lax'
+              });
+            }
+          }
+          
+          if (userData) {
+            console.log('User authenticated:', userData);
+            setUser(userData);
+          } else {
+            console.warn('Token found but no user data');
             clearAuthData();
           }
         } catch (error) {
@@ -54,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           clearAuthData();
         }
       } else {
+        console.log('No auth token found');
         clearAuthData();
       }
       
@@ -75,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Cookies.set('auth-token', response.token, { 
           expires: 2,
           path: '/',
-          sameSite: 'strict'
+          sameSite: 'lax'
         });
         
         localStorage.setItem('token', response.token);
@@ -92,12 +112,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Cookies.set('user', JSON.stringify(userData), { 
           expires: 2,
           path: '/',
-          sameSite: 'strict'
+          sameSite: 'lax'
         });
         
         setUser(userData);
         
-        router.push('/');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        window.location.href = '/';
       }
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -108,10 +130,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await authService.logout();
-    setUser(null);
-    
-    window.location.href = '/signin';
+    try {
+      setUser(null);
+      
+      await authService.logout();
+      
+      window.location.href = '/signin';
+    } catch (error) {
+      console.error('Error during logout:', error);
+      window.location.href = '/signin';
+    }
   };
 
   return (
