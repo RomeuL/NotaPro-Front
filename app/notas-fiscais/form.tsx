@@ -34,6 +34,7 @@ interface Invoice {
   valor: number;
   tipoPagamento: "BOLETO" | "PIX" | "CARTAO_CREDITO" | "TRANSFERENCIA_BANCARIA" | "DINHEIRO";
   numeroBoleto: string | null;
+  numeroNota: string;
   status: "PENDENTE" | "PAGO";
 }
 
@@ -51,6 +52,7 @@ interface FormErrors {
   valor?: string;
   tipoPagamento?: string;
   numeroBoleto?: string;
+  numeroNota?: string;
   general?: string;
 }
 
@@ -70,6 +72,7 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
     valor: 0,
     tipoPagamento: "BOLETO",
     numeroBoleto: null,
+    numeroNota: "",
     status: "PENDENTE",
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -141,6 +144,18 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
     }
   };
 
+  const handleNumberInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    setFormData((prev) => ({ 
+      ...prev, 
+      numeroNota: value
+    }));
+    
+    if (errors.numeroNota) {
+      setErrors((prev) => ({ ...prev, numeroNota: undefined }));
+    }
+  };
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     let isValid = true;
@@ -167,6 +182,11 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
 
     if (!formData.valor) {
       newErrors.valor = "Valor é obrigatório";
+      isValid = false;
+    }
+
+    if (!formData.numeroNota.trim()) {
+      newErrors.numeroNota = "Número da nota é obrigatório";
       isValid = false;
     }
 
@@ -272,6 +292,22 @@ export default function FormNotaFiscalPage({ notaFiscal }: FormNotaFiscalProps) 
                 />
                 {errors.descricao && (
                   <p className="text-sm text-destructive">{errors.descricao}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="numeroNota" className="flex items-center gap-1 font-medium">
+                  Número da Nota <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="numeroNota"
+                  placeholder="Digite apenas números"
+                  value={formData.numeroNota}
+                  onChange={handleNumberInput}
+                  className={errors.numeroNota ? "border-destructive focus:ring-destructive" : "focus:ring-[#1a365d] focus:border-[#1a365d]"}
+                />
+                {errors.numeroNota && (
+                  <p className="text-sm text-destructive">{errors.numeroNota}</p>
                 )}
               </div>
 

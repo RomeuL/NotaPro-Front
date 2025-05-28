@@ -15,6 +15,7 @@ interface Invoice {
   valor: number;
   tipoPagamento: "BOLETO" | "PIX" | "CARTAO_CREDITO" | "TRANSFERENCIA_BANCARIA" | "DINHEIRO";
   numeroBoleto: string | null;
+  numeroNota: string;
   status: "PENDENTE" | "PAGO";
 }
 

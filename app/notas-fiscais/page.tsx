@@ -30,6 +30,7 @@ interface Invoice {
   valor: number;
   tipoPagamento: "BOLETO" | "PIX" | "CARTAO_CREDITO" | "TRANSFERENCIA_BANCARIA" | "DINHEIRO";
   numeroBoleto: string | null;
+  numeroNota: string;
   status: "PENDENTE" | "PAGO";
 }
 
@@ -129,9 +130,12 @@ export default function NotasFiscaisPage() {
     }
     
     const companyName = getCompanyName(invoice.empresaId);
+    const searchLower = searchQuery.toLowerCase();
+    
     return (
-      invoice.descricao.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      companyName.toLowerCase().includes(searchQuery.toLowerCase())
+      invoice.descricao.toLowerCase().includes(searchLower) ||
+      companyName.toLowerCase().includes(searchLower) ||
+      invoice.numeroNota.toLowerCase().includes(searchLower)
     );
   });
 
@@ -260,7 +264,7 @@ export default function NotasFiscaisPage() {
             <div className="flex items-center gap-2 w-full sm:w-auto sm:max-w-md md:max-w-lg relative">
               <Search className="absolute left-2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por descrição ou empresa..."
+                placeholder="Buscar por descrição, empresa ou número da nota..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-8 border-gray-300 focus:border-[#1a365d] focus:ring-[#1a365d]"
@@ -303,7 +307,10 @@ export default function NotasFiscaisPage() {
             <Card key={invoice.id} className="h-full flex flex-col shadow-md hover:shadow-lg transition-shadow">
               <CardHeader className="pb-2 border-b">
                 <CardTitle className="text-lg font-medium text-[#1a365d]">
-                  <div className="line-clamp-2 mr-2">{invoice.descricao}</div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground font-normal">Nota Nº</span>
+                    <span className="text-xl font-bold text-[#1a365d] font-mono">{invoice.numeroNota}</span>
+                  </div>
                 </CardTitle>
                 <div className="mt-2 flex justify-between items-center">
                   {getStatusBadge(invoice.status)}
@@ -314,6 +321,11 @@ export default function NotasFiscaisPage() {
               </CardHeader>
               <CardContent className="flex-grow pb-2 pt-4">
                 <div className="space-y-3">
+                  <div className="mb-3">
+                    <span className="text-sm text-muted-foreground">Descrição:</span>
+                    <p className="text-sm mt-1 line-clamp-2 text-gray-700">{invoice.descricao}</p>
+                  </div>
+                  
                   <Button 
                     variant={invoice.status === "PENDENTE" ? "default" : "outline"} 
                     size="sm" 
