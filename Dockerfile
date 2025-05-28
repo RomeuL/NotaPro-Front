@@ -18,6 +18,7 @@ RUN printf "/** @type {import('next').NextConfig} */\nconst nextConfig = {};\nex
 # Corrigir problemas de tipo em tempo de compilação
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max_old_space_size=4096"
+
 RUN npx next build --no-lint
 
 # Estágio de produção
